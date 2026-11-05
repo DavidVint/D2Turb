@@ -123,10 +123,19 @@ class TiltRectifier(nn.Module):
 class D2TurbRestormer(nn.Module):
     """D2Turb inference path with Restormer restoration and ASPI rectification."""
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        channels: tuple[int, ...] = (48, 96, 192, 384),
+        num_blocks: tuple[int, ...] = (4, 6, 6, 8),
+        num_heads: tuple[int, ...] = (1, 2, 4, 8),
+        num_refinement: int = 4,
+        expansion_factor: float = 2.66,
+        base_channels: int = 32,
+    ) -> None:
         super().__init__()
-        self.restormer = Restormer()
-        self.rectifier = TiltRectifier(guide_channels=self.restormer.guide_channels)
+        self.restormer = Restormer(num_blocks=num_blocks, num_heads=num_heads, channels=channels,
+                                    num_refinement=num_refinement, expansion_factor=expansion_factor)
+        self.rectifier = TiltRectifier(base_channels=base_channels, guide_channels=self.restormer.guide_channels)
 
     @staticmethod
     def _pad_input(image: Tensor) -> tuple[Tensor, int, int]:
